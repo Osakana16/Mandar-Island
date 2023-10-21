@@ -221,25 +221,52 @@ class Mandalart {
         }
     }
 }
+class Button {
+    constructor(parentElement, onClick, text, isTextEditable) {
+        var outer = document.createElement('div');
+        outer.classList.add("add-island-button-outer");
+        var inner = document.createElement('div');
+        inner.classList.add("add-island-button");
+        var title = document.createElement('span');
+        title.innerText = text;
+        title.contentEditable = isTextEditable;
+
+        inner.onclick = onClick;
+
+        parentElement.appendChild(outer);
+        outer.appendChild(inner);
+        inner.appendChild(title);
+    }
+}
 
 class FieldMap {
     constructor() {
+        var isNeedToRender = false;
         var selfElement = document.getElementById('map');
-        selfElement.outer = document.createElement('div');
-        selfElement.outer.classList.add("add-island-button-outer");
 
-        selfElement.inner = document.createElement('div');
-        selfElement.inner.classList.add("add-island-button");
-        selfElement.inner.innerText = "マンダラートを追加";
-        selfElement.inner.onclick = function () {
-            let project = document.getElementById('mandalart').project;
-            project.addMandalarts(true);
-            project.toggleMap();
-        }
+        var newButton = new Button(
+            selfElement,
+            function () {
+                let project = document.getElementById('mandalart').project;
+                let mandalart = project.addMandalarts(true);
+                project.toggleMap();
 
-        selfElement.appendChild(selfElement.outer);
-        selfElement.outer.appendChild(selfElement.inner);
-        
+                buttons.push(new Button(
+                    selfElement,
+                    function () {
+                        project.changeActiveMandalart(mandalart);
+                        project.toggleMap();
+                    },
+                    "New Mandalart",
+                    true
+                ));
+            },
+            "マンダラートを追加",
+            false
+        );
+
+        var buttons = [];
+
         this.toggleMap = function() {
             selfElement.hidden = !selfElement.hidden;
         };
@@ -250,8 +277,8 @@ class Project {
     constructor() {
         this.projectName = "New Project";
         this.activeMandalart = undefined;
-        var mandalarts = [];
         var fieldMap = new FieldMap();
+
         this.toggleMap = function() {
             fieldMap.toggleMap();
             this.activeMandalart.toggleMap();
@@ -259,11 +286,14 @@ class Project {
 
         this.addMandalarts = function(changeActivation) {
             let mandalart = new Mandalart(this.content);
-            mandalarts.push(mandalart);
             if (changeActivation) {
-                this.activeMandalart = mandalart;
+                this.changeActiveMandalart(mandalart);
             }
             return mandalart;
+        };
+
+        this.changeActiveMandalart = function (mandalart) {
+            this.activeMandalart = mandalart;
         };
 
         let addRow = function(parent) {
