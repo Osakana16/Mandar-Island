@@ -225,6 +225,20 @@ class Mandalart {
 class FieldMap {
     constructor() {
         var selfElement = document.getElementById('map');
+        selfElement.outer = document.createElement('div');
+        selfElement.outer.classList.add("add-island-button-outer");
+
+        selfElement.inner = document.createElement('div');
+        selfElement.inner.classList.add("add-island-button");
+        selfElement.inner.innerText = "マンダラートを追加";
+        selfElement.inner.onclick = function () {
+            let project = document.getElementById('mandalart').project;
+            project.addMandalarts(true);
+            project.toggleMap();
+        }
+
+        selfElement.appendChild(selfElement.outer);
+        selfElement.outer.appendChild(selfElement.inner);
         
         this.toggleMap = function() {
             selfElement.hidden = !selfElement.hidden;
@@ -287,7 +301,6 @@ class Project {
 class MandarIsland {
     constructor() {
         this.project = new Project();
-        this.project.addMandalarts(true);
     }
 }
 
