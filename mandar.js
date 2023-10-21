@@ -235,18 +235,19 @@ class FieldMap {
 class Project {
     constructor() {
         this.projectName = "New Project";
+        this.activeMandalart = undefined;
         var mandalarts = [];
-        var activeMandalart = undefined;
         var fieldMap = new FieldMap();
-        var toggleMap = function() {
+        this.toggleMap = function() {
             fieldMap.toggleMap();
+            this.activeMandalart.toggleMap();
         };
 
         this.addMandalarts = function(changeActivation) {
             let mandalart = new Mandalart(this.content);
             mandalarts.push(mandalart);
             if (changeActivation) {
-                activeMandalart = mandalart;
+                this.activeMandalart = mandalart;
             }
             return mandalart;
         };
@@ -279,6 +280,7 @@ class Project {
         };
 
         this.content = document.getElementById('mandalart');
+        document.getElementById('mandalart').project = this;
     }
 }
 
@@ -300,14 +302,14 @@ var onColorChanged = function(mandalart, color) {
 }
 
 var onExpand = function() {
-    
+    document.getElementById('mandalart').project.toggleMap();
 }
 
 // - Event functions -
 
-var onWAlignChanged = function(mandarisland, align) {
+var onWAlignChanged = function(align) {
     let target = document.getElementById("optionModal").target;
-    let mandalart = mandarisland.project.activeMandalart;
+    let mandalart = document.getElementById('mandalart').project.activeMandalart;
     mandalart.getBox(target[0], target[1]).textBox.classList.remove('text-start');
     mandalart.getBox(target[0], target[1]).textBox.classList.remove('text-center');
     mandalart.getBox(target[0], target[1]).textBox.classList.remove('text-end');
@@ -324,9 +326,9 @@ var onWAlignChanged = function(mandarisland, align) {
     mandalart.getBox(target[0], target[1]).textBox.classList.add(align.id);
 }
 
-var onVAlignChanged = function(mandarisland, align) {
+var onVAlignChanged = function(align) {
     let target = document.getElementById("optionModal").target;
-    let mandalart = mandarisland.project.activeMandalart
+    let mandalart = document.getElementById('mandalart').project.activeMandalart
     mandalart.getBox(target[0], target[1]).textBox.classList.remove('text-top');
     mandalart.getBox(target[0], target[1]).textBox.classList.remove('text-middle');
     mandalart.getBox(target[0], target[1]).textBox.classList.remove('text-bottom');
