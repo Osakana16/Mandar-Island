@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset='UTF-8'>
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js" integrity="sha384-fbbOQedDUMZZ5KreZpsbe1LCZPVmfTnH7ois6mU1QK+m14rQ1l2bGBq41eYeM/fS" crossorigin="anonymous"></script>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+        <title>Mandar-Island</title>
+        <style>
+            .mandar-box {
+                border: 1px solid;
+                height: 250px;
+                text-align: center;
+            }
+
+            .mandar-text {
+                height: absolute 250px;
+                max-height: 250px;
+                min-height: 250px;
+                resize: none;
+            }
+
+            .mandar-text.text-top {
+                padding: 0% 0;
+            }
+
+            .mandar-text.text-middle {
+                padding: 30% 0;
+            }
+
+            .mandar-text.text-bottom {
+                padding: 50% 0;
+                box-sizing: border-box;
+            }
+
+            .mandar-button {
+                border: 1px solid;
+                font-size: x-large;
+
+                cursor: pointer;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+            }
+
+            .mandar-non-selection {
+                user-select: none;
+            }
+
+            .add-island-button-outer {
+                display: table;
+            }
+
+            .add-island-button {
+                display: table-cell;
+                background: lightblue;
+                width: 250px;
+                height: 250px;
+                border-radius: 50%;
+                text-align: center;
+                vertical-align: middle;
+                user-select: none; /* Standard syntax */
+            }
+
+            .add-island-button:hover {
+                display: table-cell;
+                cursor: pointer;
+                background: lightslategray;
+                width: 250px;
+                height: 250px;
+                border-radius: 50%;
+                text-align: center;
+                vertical-align: middle;
+                user-select: none; /* Standard syntax */
+            }
+        </style>
+    </head>
+    <body class='container-fluid'>
+        <header class='row bg-primary text-white' style='border: 1px solid; font-size: x-large;'>
+            <div class='col'>
+                Mandar-Island
+            </div>
+            <div class='col'>
+                <span class='mandar-non-selection' onclick='onLoadFile()' data-bs-toggle="tooltip" data-bs-placement="bottom" title="ファイルを開く">📂</span>
+                <span class='mandar-non-selection' onclick='onSaveFile()' data-bs-toggle="tooltip" data-bs-placement="bottom" title="上書き保存">💾</span>
+                <span id='filename'>Untitled</span>
+                <span class="mandar-non-selection" data-bs-toggle="modal" data-bs-target="#licenseModal">ⓘ</span>
+            </div>
+            <div class='col-1'>
+                <h6><a href='https://karapo.net/' style='color: white'>ぽけっと研究所</a>Copyright(C)2023</h6>
+            </div>
+        </header>
+        <!-- 島の表示 -->
+        <div class="row">
+            <div class="col">
+                <div style="position: fixed; z-index: 1; bottom: 2%;">
+                    <span class="btn btn-primary" onclick='onExpand()'>&lt;&lt;</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- マンダラート -->
+        <div id='mandalart' hidden="">
+        </div>
+
+        <!-- 地図 -->
+        <div id='map'>
+            <div class="row">
+                <div class="col">
+                </div>
+            </div>
+        </div>
+   
+        <!-- Modal -->
+        <div class="modal fade" id="licenseModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="licenseModalLabel">ライセンス</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Mandar-IslandはMITライセンスです。<br />
+                        誰でも改変したものを再配布することが可能です。<br />
+                        <br />
+                        Copyright 2023 おさかな<br />
+                        <br />
+                        Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:<br />
+                        The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.<br />
+                        THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.<br />
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="optionModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">設定</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <div class='row'>
+                            <div id='text-start' class='col btn-outline-primary border' onclick='onWAlignChanged(this)'>
+                                左寄せ
+                            </div>
+                            <div id='text-center' class='col btn-outline-primary border' onclick='onWAlignChanged(this)'>
+                                中央寄せ
+                            </div>
+                            <div id='text-end' class='col btn-outline-primary border' onclick='onWAlignChanged(this)'>
+                                右寄せ
+                            </div>
+                        </div>
+                        <!--
+                    <div class='row'>
+                        <div value='text-top' class='col btn-outline-primary border' onclick='onVAlignChanged(this)'>
+                            上寄せ
+                        </div>
+                        <div value='text-middle' class='col btn-outline-primary border' onclick='onVAlignChanged(this)'>
+                            中央寄せ
+                        </div>
+                        <div value='text-bottom' class='col btn-outline-primary border' onclick='onVAlignChanged(this)'>
+                            下寄せ
+                        </div>
+                    </div>
+                    -->
+                        <div class='row'>
+                            <div class='col'>
+                                背景色
+                            </div>
+                            <div class='col'>
+                                <input id='bg-text-color' type='text' name='background' onchange='onBGColorChanged(this.value)'>
+                            </div>
+                        </div>
+                        <div class='row'>
+                            <div class='col'>
+                                文字色
+                            </div>
+                            <div class='col'>
+                                <input id='text-color' type='text' name='character' onchange='onColorChanged(this.value)'>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            // Bootstrap initialization
+            {
+                var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+                var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+                    return new bootstrap.Popover(popoverTriggerEl)
+                })
+
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl)
+                })
+            }
+        </script>
+        <script src="mandar.js"></script>
+        <script>
+            var mandarisland = new MandarIsland();
+        </script>
+    </body>
+</html>
