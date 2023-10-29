@@ -122,11 +122,11 @@ var createTable = function() {
 
 class Mandalart {
     constructor(parent) {
-        var table = createTable();
-        table.style.width = "100%";
-        table.style.margin = 0;
-        table.style.tableLayout = "fixed";
-        parent.appendChild(table);
+        this.table = createTable();
+        this.table.style.width = "100%";
+        this.table.style.margin = 0;
+        this.table.style.tableLayout = "fixed";
+        parent.appendChild(this.table);
 
         this.parseMandalart = function(content) {
             var json = JSON.parse(content);
@@ -165,10 +165,10 @@ class Mandalart {
             elements.push(new MandarElement());
         }
 
-        table.mandarRow = [
-            new MandarRow(table.body, 0), 
-            new MandarRow(table.body, 1), 
-            new MandarRow(table.body, 2)
+        this.table.mandarRow = [
+            new MandarRow(this.table.body, 0), 
+            new MandarRow(this.table.body, 1), 
+            new MandarRow(this.table.body, 2)
         ];
 
         this.getBox = (x, y) => {
@@ -177,7 +177,7 @@ class Mandalart {
 
         this.render = function() {
             var i = 0;
-            table.mandarRow.forEach(row => {
+            this.table.mandarRow.forEach(row => {
                 row.box.forEach(box => {
                     box.textBox.style.backgroundColor = elements[i].bgColor;
                     box.textBox.style.color = elements[i].color;
@@ -194,9 +194,9 @@ class Mandalart {
             });
         }
 
-        this.update = function() {
+        this.update = function () {
             var i = 0;
-            table.mandarRow.forEach(row => {
+            this.table.mandarRow.forEach(row => {
                 row.box.forEach(box => {
                     elements[i].bgColor = box.textBox.style.backgroundColor;
                     elementsr[i].color = box.textBox.style.color;
@@ -212,7 +212,15 @@ class Mandalart {
                     i++;
                 });
             });
-        }
+        };
+
+        this.replace = function () {
+            selfElement.appendChild(this.table);
+        };
+
+        this.remove = function () {
+            this.table.parentElement.removeChild(this.table);
+        };
 
         var selfElement = document.getElementById('mandalart');
 
@@ -222,7 +230,9 @@ class Mandalart {
     }
 }
 class Button {
-    constructor(parentElement, onClick, text, isTextEditable) {
+    constructor(parentElement, mandalart, onClick, text, isTextEditable) {
+        this.mandalart = mandalart;
+
         var outer = document.createElement('div');
         outer.classList.add("add-island-button-outer");
         var inner = document.createElement('div');
@@ -231,7 +241,11 @@ class Button {
         title.innerText = text;
         title.contentEditable = isTextEditable;
 
-        inner.onclick = onClick;
+        var self = this;
+
+        inner.onclick = function () {
+            onClick(self);
+        };
 
         parentElement.appendChild(outer);
         outer.appendChild(inner);
@@ -246,20 +260,26 @@ class FieldMap {
 
         var newButton = new Button(
             selfElement,
-            function () {
+            undefined,
+            function (self) {
                 let project = document.getElementById('mandalart').project;
-                let mandalart = project.addMandalarts(true);
-                project.toggleMap();
+                if (project.activeMandalart != null && project.activeMandalart != undefined) {
+                    project.activeMandalart.remove();
+                }
 
                 buttons.push(new Button(
                     selfElement,
-                    function () {
-                        project.changeActiveMandalart(mandalart);
+                    project.addMandalarts(true),
+                    function (self_) {
+                        project.activeMandalart.remove();
+                        project.changeActiveMandalart(self_.mandalart);
+                        self_.mandalart.replace();
                         project.toggleMap();
                     },
                     "New Mandalart",
                     true
                 ));
+                project.toggleMap();
             },
             "マンダラートを追加",
             false
@@ -277,6 +297,7 @@ class Project {
     constructor() {
         this.projectName = "New Project";
         this.activeMandalart = undefined;
+        this.mandalarts = [];
         var fieldMap = new FieldMap();
 
         this.toggleMap = function() {
@@ -286,6 +307,7 @@ class Project {
 
         this.addMandalarts = function(changeActivation) {
             let mandalart = new Mandalart(this.content);
+            this.mandalarts.push(mandalart);
             if (changeActivation) {
                 this.changeActiveMandalart(mandalart);
             }
