@@ -128,34 +128,31 @@ class Mandalart {
         this.table.style.tableLayout = "fixed";
         parent.appendChild(this.table);
 
-        this.parseMandalart = function(content) {
-            var json = JSON.parse(content);
-            Object.keys(json).forEach(key => {
-                for (var i = 0; i < 9; i++) {
-                    elements[key][i].isLocked = json[key][i].isLocked;
-                    elements[key][i].bgColor = json[key][i].bgColor;
-                    elements[key][i].color = json[key][i].color;
-                    elements[key][i].walign = json[key][i].walign;
-                    elements[key][i].valign = json[key][i].valign;
-                    elements[key][i].text = json[key][i].text;
-                }
-            });
+        this.parseMandalart = function (content) {
+            for (var i = 0; i < 9; i++) {
+                elements[i].isLocked = content[i].isLocked;
+                elements[i].bgColor = content[i].bgColor;
+                elements[i].color = content[i].color;
+                elements[i].walign = content[i].walign;
+                elements[i].valign = content[i].valign;
+                elements[i].text = content[i].text;
+            }
+            this.render();
         }
 
-        this.extractMandalart = function() {
-            var content = {};
-            Object.keys(elements).forEach(key => {
-                content[key] = [];
-                for (var i = 0; i < 9; i++) {
-                    content[key].push({
-                        "isLocked": elements[key][i].isLocked,
-                        "bgColor": elements[key][i].bgColor,
-                        "color": elements[key][i].color,
-                        "walign": elements[key][i].walign,
-                        "valign": elements[key][i].valign,
-                        "text": elements[key][i].text
-                    });
-                }
+        this.extractMandalart = function () {
+            this.update();
+
+            let content = [];
+            elements.forEach(e => {
+                content.push({
+                    "isLocked": e.isLocked,
+                    "bgColor": e.bgColor,
+                    "color": e.color,
+                    "walign": e.walign,
+                    "valign": e.valign,
+                    "text": e.text
+                });
             });
             return content;
         }
@@ -172,7 +169,7 @@ class Mandalart {
         ];
 
         this.getBox = (x, y) => {
-            return table.mandarRow[x].box[y];
+            return this.table.mandarRow[x].box[y];
         };
 
         this.render = function() {
@@ -199,7 +196,7 @@ class Mandalart {
             this.table.mandarRow.forEach(row => {
                 row.box.forEach(box => {
                     elements[i].bgColor = box.textBox.style.backgroundColor;
-                    elementsr[i].color = box.textBox.style.color;
+                    elements[i].color = box.textBox.style.color;
                     elements[i].text = box.textBox.innerText;
 
                     if (box.textBox.classList.contains('text-start')) {
@@ -243,6 +240,14 @@ class Button {
 
         var self = this;
 
+        this.getName = function () {
+            return title.innerText;
+        };
+
+        this.rename = function (newone) {
+            title.innerText = newone;
+        };
+
         inner.onclick = function () {
             onClick(self);
         };
@@ -255,37 +260,43 @@ class Button {
 
 class FieldMap {
     constructor() {
+        var self = this;
         var isNeedToRender = false;
         var selfElement = document.getElementById('map');
+
+        this.onNewButtonPressed = function (_) {
+            let project = document.getElementById('mandalart').project;
+            if (project.activeMandalart != null && project.activeMandalart != undefined) {
+                project.activeMandalart.remove();
+            }
+
+            let button = new Button(
+                selfElement,
+                project.addMandalarts(true),
+                function (self_) {
+                    project.activeMandalart.remove();
+                    project.changeActiveMandalart(self_.mandalart);
+                    self_.mandalart.replace();
+                    project.toggleMap();
+                },
+                "New Mandalart",
+                true
+            );
+
+            self.buttons.push(button);
+            project.toggleMap();
+            return button;
+        };
 
         var newButton = new Button(
             selfElement,
             undefined,
-            function (self) {
-                let project = document.getElementById('mandalart').project;
-                if (project.activeMandalart != null && project.activeMandalart != undefined) {
-                    project.activeMandalart.remove();
-                }
-
-                buttons.push(new Button(
-                    selfElement,
-                    project.addMandalarts(true),
-                    function (self_) {
-                        project.activeMandalart.remove();
-                        project.changeActiveMandalart(self_.mandalart);
-                        self_.mandalart.replace();
-                        project.toggleMap();
-                    },
-                    "New Mandalart",
-                    true
-                ));
-                project.toggleMap();
-            },
+            this.onNewButtonPressed,
             "マンダラートを追加",
             false
         );
 
-        var buttons = [];
+        this.buttons = [];
 
         this.toggleMap = function() {
             selfElement.hidden = !selfElement.hidden;
@@ -295,10 +306,79 @@ class FieldMap {
 
 class Project {
     constructor() {
+        var self = this;
         this.projectName = "New Project";
         this.activeMandalart = undefined;
         this.mandalarts = [];
         var fieldMap = new FieldMap();
+
+        this.read = function () {
+            const options = {
+                types: [
+                    {
+                        description: "JSON Files",
+                        accept: {
+                            "application/json": [".json"],
+                        },
+                        multiple: false
+                    },
+                ],
+            };
+
+            (async () => {
+                const handle = await window.showOpenFilePicker(options);
+                fileHandler = handle[0];
+                const file = await handle[0].getFile();
+                let json = JSON.parse(await file.text());
+                self.projectName = json["project"];
+                json["button"].forEach(e => {
+                    let button = fieldMap.onNewButtonPressed();
+                    this.activeMandalart.parseMandalart(e["detail"]);
+                    this.toggleMap();
+                    button.rename(e["name"]);
+                });
+
+                document.getElementById('filename').innerText = file.name;
+            })();
+        };
+
+        this.write = function () {
+            async function _saveFile(handle) {
+                async function _writeFile(fileHandle) {
+                    const writable = await fileHandle.createWritable();
+                    let content = {};
+                    content["project"] = self.projectName;
+                    content["button"] = [];
+
+                    fieldMap.buttons.forEach(b => {
+                        content["button"].push({ "name": b.getName(), "detail": b.mandalart.extractMandalart() });
+                    });
+
+                    await writable.write(JSON.stringify(content));
+                    await writable.close();
+                }
+
+                const saveFileOptions = {
+                    types: [
+                        {
+                            description: "JSON Files",
+                            accept: { "application/json": [".json"] },
+                        }
+                    ],
+                };
+
+                if (handle == null || handle == undefined) {
+                    handle = await window.showSaveFilePicker(saveFileOptions);
+                }
+                await _writeFile(handle);
+                return handle;
+            }
+
+            (async () => {
+                fileHandler = await _saveFile(fileHandler);
+                document.getElementById('filename').innerText = fileHandler.name;
+            })();
+        };
 
         this.toggleMap = function() {
             fieldMap.toggleMap();
@@ -356,13 +436,15 @@ class MandarIsland {
     }
 }
 
-var onBGColorChanged = function(mandalart, color) {
+var onBGColorChanged = function(color) {
     let target = document.getElementById("optionModal").target;
+    let mandalart = document.getElementById('mandalart').project.activeMandalart;
     mandalart.getBox(target[0], target[1]).textBox.style.backgroundColor = color;
 }
 
-var onColorChanged = function(mandalart, color) {
+var onColorChanged = function(color) {
     let target = document.getElementById("optionModal").target;
+    let mandalart = document.getElementById('mandalart').project.activeMandalart;
     mandalart.getBox(target[0], target[1]).textBox.style.color = color;
 }
 
@@ -393,7 +475,7 @@ var onWAlignChanged = function(align) {
 
 var onVAlignChanged = function(align) {
     let target = document.getElementById("optionModal").target;
-    let mandalart = document.getElementById('mandalart').project.activeMandalart
+    let mandalart = document.getElementById('mandalart').project.activeMandalart;
     mandalart.getBox(target[0], target[1]).textBox.classList.remove('text-top');
     mandalart.getBox(target[0], target[1]).textBox.classList.remove('text-middle');
     mandalart.getBox(target[0], target[1]).textBox.classList.remove('text-bottom');
@@ -406,60 +488,10 @@ var onVAlignChanged = function(align) {
     mandalart.getBox(target[0], target[1]).textBox.classList.add(align.id);
 }
 
-var onLoadFile = function(mandalart) {
-    const options = {
-        types: [
-          {
-            description: "JSON Files",
-            accept: {
-              "application/json": [".json"],
-            },
-            multiple: false
-          },
-        ],
-    };
-
-    (async ()=> {
-        const handle = await window.showOpenFilePicker(options);
-        fileHandler = handle[0];
-        const file = await handle[0].getFile();
-        mandarlart.parseMandalart(await file.text());
-        document.getElementById('filename').innerText = file.name;
-        
-        mandarlart.render();
-    })();
+var onLoadFile = function () {
+    document.getElementById('mandalart').project.read();
 }
 
-var onSaveFile = function(mandalart) {
-    async function _saveFile(content, handle) {
-        async function _writeFile(fileHandle) {
-            const writable = await fileHandle.createWritable();
-
-            var content = mandarlart.extractMandalart();
-            await writable.write(JSON.stringify(content));
-            await writable.close();
-        }
-
-        const saveFileOptions = {
-            types: [
-                {
-                    description: "JSON Files",
-                    accept: { "application/json": [".json"] },
-                }
-            ],
-        };
-
-        if (handle == null || handle == undefined) {
-            handle = await window.showSaveFilePicker(saveFileOptions);
-        }
-        await _writeFile(handle);
-        return handle;
-    }
-
-    mandarlart.update();
-
-    (async ()=> {
-        fileHandler = await _saveFile("書き込む内容", fileHandler);
-        document.getElementById('filename').innerText = fileHandler.name;
-    })();
+var onSaveFile = function () {
+    document.getElementById('mandalart').project.write();
 }
